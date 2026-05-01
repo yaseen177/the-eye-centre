@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brandPrimary: #004A8F; /* We can tweak this blue later to match your exact logo */
-  --color-brandAccent: #E0F2FE;
+  --color-brandTeal: #00897B;
+  --color-darkGreen: #1B4332;
+  --color-beige: #F5F0E8;
+  --color-gold: #C9A84C;
 }
 
 html {

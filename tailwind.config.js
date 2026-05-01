@@ -7,12 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        brandPrimary: '#004A8F', // We will update this with your exact blue!
-        brandAccent: '#E0F2FE',
+        brandTeal: '#00897B',
+        darkGreen: '#1B4332',
+        beige: '#F5F0E8',
+        gold: '#C9A84C',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-      }
+      },
     },
   },
   plugins: [],
