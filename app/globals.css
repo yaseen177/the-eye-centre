@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brandTeal: #00897B;
+  --color-darkGreen: #1B4332;
+  --color-beige: #F5F0E8;
+  --color-gold: #C9A84C;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

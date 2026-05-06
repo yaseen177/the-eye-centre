@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  role          Role      @default(CUSTOMER)
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Products ────────────────────────────────────────────────────────────────
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  brand       String
+  slug        String      @unique
+  price       Float
+  images      String[]
+  category    Category
+  gender      Gender
+  shape       FrameShape?
+  color       String
+  material    String
+  frameWidth  String?
+  inStock     Boolean     @default(true)
+  stockCount  Int         @default(0)
+  description String?     @db.Text
+  featured    Boolean     @default(false)
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum Category {
+  PRESCRIPTION
+  SUNGLASSES
+  DESIGNER
+  SPORTS
+}
+
+enum Gender {
+  MENS
+  WOMENS
+  UNISEX
+  KIDS
+}
+
+enum FrameShape {
+  ROUND
+  SQUARE
+  RECTANGLE
+  CAT_EYE
+  AVIATOR
+  WAYFARER
+  OVAL
+}
+
+// ─── Orders ──────────────────────────────────────────────────────────────────
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+  guestEmail      String?
+  guestName       String?
+  status          OrderStatus @default(PENDING)
+  subtotal        Float
+  total           Float
+  stripePaymentId String?     @unique
+  shippingAddress Json?
+  items           OrderItem[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  LENSES_BEING_FITTED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id           String        @id @default(cuid())
+  orderId      String
+  order        Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product       @relation(fields: [productId], references: [id])
+  quantity     Int           @default(1)
+  unitPrice    Float
+  prescription Prescription?
+}
+
+// ─── Prescription ────────────────────────────────────────────────────────────
+
+model Prescription {
+  id          String      @id @default(cuid())
+  orderItemId String      @unique
+  orderItem   OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  lensType    LensType
+  // Right eye (OD)
+  rightSph    Float?
+  rightCyl    Float?
+  rightAxis   Int?
+  rightAdd    Float?
+  // Left eye (OS)
+  leftSph     Float?
+  leftCyl     Float?
+  leftAxis    Int?
+  leftAdd     Float?
+  // Pupillary Distance
+  pdSingle    Float?
+  pdRight     Float?
+  pdLeft      Float?
+  // Lens options
+  lensPackage LensPackage
+  lensTint    LensTint
+  sendLater   Boolean     @default(false)
+}
+
+enum LensType {
+  SINGLE_VISION
+  VARIFOCAL
+  NON_PRESCRIPTION
+  FRAME_ONLY
+}
+
+enum LensPackage {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum LensTint {
+  CLEAR
+  SUNGLASS_TINT
+  BLUE_LIGHT
+  TRANSITIONS
+}
+
+// ─── Gallery ─────────────────────────────────────────────────────────────────
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  caption   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
