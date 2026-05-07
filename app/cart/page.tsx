@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ShoppingBag, Trash2, ChevronLeft, Loader2 } from 'lucide-react';
@@ -18,9 +19,10 @@ const LENS_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function CartPage() {
-  const { items, removeItem, subtotal } = useCartStore();
+  const { items, removeItem, subtotal, clearCart } = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -30,16 +32,17 @@ export default function CartPage() {
     setSubmitting(true);
     setError('');
     try {
-      const res = await fetch('/api/checkout/create-session', {
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, customerInfo: values }),
+        body: JSON.stringify({ items, ...values }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Checkout failed');
-      window.location.assign(data.url);
+      if (!res.ok) throw new Error(data.error ?? 'Submission failed');
+      clearCart();
+      router.push('/checkout/success');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Checkout failed');
+      setError(e instanceof Error ? e.message : 'Submission failed');
       setSubmitting(false);
     }
   }
@@ -101,9 +104,9 @@ export default function CartPage() {
               ))}
             </div>
 
-            {/* Checkout form */}
+            {/* Enquiry form */}
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 h-fit">
-              <h2 className="font-bold text-gray-900 text-lg mb-6">Order Summary & Checkout</h2>
+              <h2 className="font-bold text-gray-900 text-lg mb-1">Order Summary</h2>
 
               <div className="space-y-2 mb-6 text-sm">
                 {items.map((item) => (
@@ -118,15 +121,14 @@ export default function CartPage() {
                 </div>
               </div>
 
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+                Leave your details and we&apos;ll be in touch within 1&ndash;2 business days to confirm your order and arrange payment.
+              </p>
+
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <Input label="Full Name"     error={errors.customerName?.message}  {...register('customerName')} />
-                <Input label="Email"         error={errors.customerEmail?.message} {...register('customerEmail')} type="email" />
-                <Input label="Address"       error={errors.line1?.message}         {...register('line1')} />
-                <Input label="Address Line 2 (optional)" error={undefined}         {...register('line2')} />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input label="City"        error={errors.city?.message}          {...register('city')} />
-                  <Input label="Postcode"    error={errors.postcode?.message}      {...register('postcode')} />
-                </div>
+                <Input label="Full Name"          error={errors.customerName?.message}  {...register('customerName')} />
+                <Input label="Email"              error={errors.customerEmail?.message} {...register('customerEmail')} type="email" />
+                <Input label="Phone (optional)"   error={undefined}                     {...register('customerPhone')} type="tel" />
 
                 {error && <p className="text-red-500 text-xs bg-red-50 rounded-lg p-3">{error}</p>}
 
@@ -136,9 +138,8 @@ export default function CartPage() {
                   className="w-full flex items-center justify-center gap-2 bg-darkGreen text-white font-bold py-4 rounded-full hover:bg-green-900 disabled:opacity-60 transition-colors"
                 >
                   {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                  {submitting ? 'Redirecting…' : `Pay ${formatPrice(subtotal())} →`}
+                  {submitting ? 'Sending…' : 'Place Enquiry →'}
                 </button>
-                <p className="text-xs text-gray-400 text-center">Secure payment via Stripe. Your data is encrypted.</p>
               </form>
             </div>
           </div>
@@ -150,7 +151,6 @@ export default function CartPage() {
   );
 }
 
-// Small reusable field component
 function Input({ label, error, ...props }: { label: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>

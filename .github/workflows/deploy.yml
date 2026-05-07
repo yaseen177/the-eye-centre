@@ -43,10 +43,8 @@ jobs:
 
       - name: Sync secrets to Worker
         run: |
-          printf '%s' "${{ secrets.DATABASE_URL }}"           | npx wrangler secret put DATABASE_URL
-          printf '%s' "${{ secrets.NEXTAUTH_SECRET }}"        | npx wrangler secret put NEXTAUTH_SECRET
-          printf '%s' "${{ secrets.STRIPE_SECRET_KEY }}"      | npx wrangler secret put STRIPE_SECRET_KEY
-          printf '%s' "${{ secrets.STRIPE_WEBHOOK_SECRET }}"  | npx wrangler secret put STRIPE_WEBHOOK_SECRET
+          printf '%s' "${{ secrets.DATABASE_URL }}"    | npx wrangler secret put DATABASE_URL
+          printf '%s' "${{ secrets.NEXTAUTH_SECRET }}" | npx wrangler secret put NEXTAUTH_SECRET
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -39,16 +39,12 @@ export const productSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
-// ─── Checkout ────────────────────────────────────────────────────────────────
+// ─── Enquiry / Cart submission ────────────────────────────────────────────────
 
 export const checkoutSchema = z.object({
   customerName:  z.string().min(1, 'Name is required'),
   customerEmail: z.string().email('Valid email required'),
-  line1:         z.string().min(1, 'Address is required'),
-  line2:         z.string().optional(),
-  city:          z.string().min(1, 'City is required'),
-  postcode:      z.string().min(1, 'Postcode is required'),
-  country:       z.string().default('GB'),
+  customerPhone: z.string().optional(),
 });
 
 export type CheckoutFormValues = z.infer<typeof checkoutSchema>;
